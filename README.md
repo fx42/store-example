@@ -1,0 +1,1 @@
+# Global StateStore Example with Spring-Cloud and KafkaStreams

@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: store-example
+  kafka:
+    bootstrap-servers: localhost:9092
+  cloud:
+    function: 
+      defintion: process-event;process-config
+    stream:
+      kafka:
+        streams:
+          default:
+            consumer:
+              applicationId: ${spring.application.name}
+      bindings:
+        process-event-in-0:
+          destination: ${topics.event-topic}
+          group: ${spring.application.name}-process-event
+          consumer:
+            use-native-decoding: true
+            keySerde: org.apache.kafka.common.serialization.Serdes$ByteArraySerde
+            valueSerde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        process-config-in-0:
+          destination: ${topics.config-topic}
+          group: ${spring.application.name}-process-config
+          consumer:
+            use-native-decoding: true
+            keySerde: org.apache.kafka.common.serialization.Serdes$StringSerde
+            valueSerde: org.apache.kafka.common.serialization.Serdes$StringSerde
+
+topics:
+  event-topic: event-input-topic
+  config-topic: config-input-topic
+statestore:
+  name: global_config_statestore
