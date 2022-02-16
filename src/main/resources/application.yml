@@ -4,14 +4,17 @@ spring:
   kafka:
     bootstrap-servers: localhost:9092
   cloud:
-    function: 
-      defintion: process-event;process-config
     stream:
+      function:
+        definition: process-event;process-config
       kafka:
         streams:
-          default:
-            consumer:
-              applicationId: ${spring.application.name}
+          binder:
+            functions:
+              process-event:
+                applicationId: ${spring.application.name}-process-event
+              process-config:
+                applicationId: ${spring.application.name}-process-config
       bindings:
         process-event-in-0:
           destination: ${topics.event-topic}
