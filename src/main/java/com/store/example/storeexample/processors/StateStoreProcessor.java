@@ -4,14 +4,13 @@ import org.apache.kafka.streams.processor.api.Processor;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.Record;
 import org.apache.kafka.streams.state.KeyValueStore;
-import org.springframework.beans.factory.annotation.Value;
 
 public class StateStoreProcessor implements Processor<String, String, Void, Void>{
 
     private final String statestoreName;
     private KeyValueStore<String,String> globalStore;
 
-    public StateStoreProcessor(@Value("$statestore.name") String statestoreName){
+    public StateStoreProcessor(String statestoreName){
         this.statestoreName = statestoreName;
     }
 

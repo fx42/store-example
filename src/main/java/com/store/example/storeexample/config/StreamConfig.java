@@ -1,12 +1,17 @@
 package com.store.example.storeexample.config;
 
+import com.store.example.storeexample.processors.StateStoreProcessor;
+
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.streams.state.KeyValueStore;
-import org.apache.kafka.streams.state.StoreBuilder;
+import org.apache.kafka.common.utils.Time;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.state.Stores;
+import org.apache.kafka.streams.state.internals.KeyValueStoreBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.config.StreamsBuilderFactoryBeanConfigurer;
 
 @Configuration
 public class StreamConfig {
@@ -20,27 +25,30 @@ public class StreamConfig {
     @Value("${statestore.name}")
     private String statestoreName;
 
-    // @Bean
-    // StreamsBuilderFactoryBeanCustomizer streamsBuilderFactoryBeanCustomizer(
-    //         StoreBuilder<KeyValueStore<String, String>> storeBuilder) {
+    public void configureGlobalStateStore(StreamsBuilder streamsBuilder) {
+        final var keyValueStore = new KeyValueStoreBuilder<>(
+                Stores.inMemoryKeyValueStore("config-input-topic"),
+                Serdes.String(),
+                Serdes.String(),
+                Time.SYSTEM
+        );
 
-    //     return factoryBean -> {
-    //         try {
-    //             var streamBuilder = factoryBean.getObject();
-    //             streamBuilder.addGlobalStore(storeBuilder, configInputTopic,
-    //                     Consumed.with(Serdes.String(), Serdes.String()), () -> new StateStoreProcessor(statestoreName));
-
-    //         } catch (Exception e) {
-    //             e.printStackTrace();
-    //         }
-    //     };
-    // }
+        streamsBuilder.addGlobalStore(
+                keyValueStore.withLoggingDisabled(),
+                "config-input-topic",
+                Consumed.with(Serdes.String(), Serdes.String()),
+                () -> new StateStoreProcessor(statestoreName));
+    }
 
     @Bean
-    public StoreBuilder<KeyValueStore<String, String>> globalConfigStore() {
-        return Stores.keyValueStoreBuilder(
-                Stores.persistentKeyValueStore(statestoreName),
-                Serdes.String(),
-                Serdes.String());
+    public StreamsBuilderFactoryBeanConfigurer streamsBuilderFactoryBeanCustomizer() {
+        return factoryBean -> {
+                try {
+                    final StreamsBuilder streamsBuilder = factoryBean.getObject();
+                    configureGlobalStateStore(streamsBuilder);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+        };
     }
 }

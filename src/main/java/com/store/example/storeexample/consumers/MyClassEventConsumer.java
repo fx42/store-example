@@ -19,6 +19,6 @@ public class MyClassEventConsumer implements Consumer<KStream<byte[], String>> {
 
     @Override
     public void accept(KStream<byte[], String> t) {
-        t.process(() -> new MyClassEventProcessor(statestoreName), statestoreName);
+        t.process(() -> new MyClassEventProcessor(statestoreName));
     }
 }
